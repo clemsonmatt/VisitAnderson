@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 session_start();
 if (! isset($_SESSION['username'])) {
@@ -9,6 +9,7 @@ if (! isset($_SESSION['username'])) {
 include('includes/config.php');
 
 /* set the current page active in navbar */
+$summary = $home = null;
 $page = getenv('REQUEST_URI');
 if (strpos($page, "summary.php")) {
     $page = 'summary.php';
@@ -23,9 +24,9 @@ $sql = 'SHOW TABLES';
 $allTables = mysqli_query($con, $sql);
 
 /* tables to exclude */
-$exclude = ['login', 'mapping'];
-$tables  = [];
-foreach ($allTables as $table) {
+$exclude = array('login', 'mapping');
+$tables  = array();
+while($table = $allTables->fetch_assoc()) {
     if (! in_array($table['Tables_in_visit_anderson'], $exclude)) {
         $tables[] = $table['Tables_in_visit_anderson'];
     }
@@ -54,10 +55,13 @@ if (sizeof($explode) == 1) {
     <link href="css/custom.css" rel="stylesheet" type="text/css" />
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="js/jQuery-Multiple-Select/css/bootstrap-multiselect.css" type="text/css">
     <script src="js/jquery.js" ></script>
     <script src="js/bootstrap.js"></script>
     <script src="js/bootstrap-datetimepicker.min.js"></script>
     <script src="js/custom.js"></script>
+    <script src="js/jQuery-Multiple-Select/js/bootstrap-multiselect.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
 </head>
 <body>
 

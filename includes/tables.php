@@ -5,7 +5,7 @@
 */
 class TableClass
 {
-    public function visitorTable($query)
+    public function visitorTable($query, $pageno, $lastpage)
     {
         /* check for id in url */
         if (isset($_GET['id']) != null) {
@@ -17,11 +17,12 @@ class TableClass
         }
         ?>
         <!-- add/edit form -->
-        <div class="well" id="person-form" style="<?php if(isset($_GET['id']) == null){echo 'display: none';} ?>">
+        <div class="well" id="visitor-form" style="<?php if(isset($_GET['id']) == null){echo 'display: none';} ?>">
             <div class="row">
-                <form method="POST" action="entites/Person.php">
+                <form method="POST" action="entities/Visitor.php">
                 <input type="hidden" id="actionType" name="actionType" value="add">
                 <input type="hidden" id="person-id" name="personId" value="">
+                <input type="hidden" class="table-name" value="visitor">
                 <div class="col-lg-4">
                     <label class="form-label">First Name</label>
                     <input class="form-control input-sm" id="form-fname" name="first_name" value="">
@@ -127,13 +128,22 @@ class TableClass
                 <th>Email</th>
                 <th>Phone(s)</th>
                 <th>Last Updated</th>
-                <th style="width: 65px;"></th>
+                <th style="width: 65px;">
+                    <a href="export.php">
+                        <button class="btn btn-primary btn-sm">
+                            <i class="fa fa-download"></i> Export
+                        </button>
+                    </a>
+                </th>
             </thead>
             <tbody>
-                
-                <?php foreach ($query as $counter => $result): ?>
+
+                <?php
+                $counter = 1;
+                while ($result = $query->fetch_assoc()):
+                ?>
                     <tr class="edit-row-tr" id="<?php echo $result['id']; ?>">
-                        <td><?php echo $counter + 1; ?></td>
+                        <td><?php echo $counter; ?></td>
                         <td id="person-fname-<?php echo $result['id']; ?>">
                             <?php echo ucwords($result['first_name']); ?>
                         </td>
@@ -145,7 +155,7 @@ class TableClass
                         </td>
                         <td>
                             <span id="person-mobile-<?php echo $result['id']; ?>">
-                                <?php echo $result['mobile_phone']; ?> 
+                                <?php echo $result['mobile_phone']; ?>
                             </span>
                             <span id="person-home-<?php echo $result['id']; ?>">
                                 <?php echo $result['home_phone']; ?>
@@ -158,9 +168,11 @@ class TableClass
                             <?php echo date('m/d/y h:ia', $result['updated_at']); ?>
                         </td>
                         <td>
-                            <button class="btn btn-danger btn-xs">
-                                <i class="fa fa-remove"></i>
-                            </button>
+                            <a href="entities/Visitor.php?actionType=remove&id=<?php echo $result['id']; ?>">
+                                <button class="btn btn-danger btn-xs">
+                                    <i class="fa fa-remove"></i>
+                                </button>
+                            </a>
                             <button class="btn btn-default btn-xs edit-row" value="<?php echo $result['id']; ?>">
                                 <i class="fa fa-edit"></i>
                             </button>
@@ -171,45 +183,64 @@ class TableClass
                         <input type="hidden" id="person-state-<?php echo $result['id']; ?>" value="<?php echo $result['state']; ?>">
                         <input type="hidden" id="person-zip-<?php echo $result['id']; ?>" value="<?php echo $result['zip']; ?>">
                     </tr>
-                <?php endforeach; ?>
-                
+                <?php
+                $counter++;
+                endwhile;
+                ?>
+
             </tbody>
         </table>
         <?php
+        echo '<center><ul class="pagination">';
+            echo '<li class=""><a href="?visitor&pageno=1">&laquo;</a></li>';
+            for ($i = 1; $i <= $lastpage; $i++) {
+                if ($i == $pageno) {
+                    echo '<li class="active"><a href="#">'.$i.'</a></li>';
+                } else {
+                    echo '<li class=""><a href="?visitor&pageno='.$i.'">'.$i.'</a></li>';
+                }
+            }
+            echo '<li class=""><a href="?visitor&pageno='.$lastpage.'">&raquo;</a></li>';
+        echo '</ul></center>';
     }
 
-    public function visitingTable($query)
+    public function visitingTable($query, $con)
     {
+        $sql = "SELECT * FROM interests";
+        $interests = mysqli_query($con, $sql);
         ?>
         <!-- add/edit form -->
         <div class="well" id="visiting-form" style="display: none;">
-            <form>
+            <form action="entities/Visiting.php" method="POST">
+            <input type="hidden" id="actionType" name="actionType" value="add">
+            <input type="hidden" id="visitor-id" name="visitorId" value="">
+            <input type="hidden" id="visiting-id" name="visitingId" value="">
             <div class="row">
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <label class="form-label">First Name</label>
-                    <input class="form-control input-sm" name="first_name" value="">
+                    <input class="form-control input-sm" id="form-fname" name="first_name" value="">
                     <label class="form-label">Last Name</label>
-                    <input class="form-control input-sm" name="last_name" value="">
+                    <input class="form-control input-sm" id="form-lname" name="last_name" value="">
                     <label class="form-label">Email</label>
-                    <input class="form-control input-sm" name="email" value="">
+                    <input class="form-control input-sm" id="form-email" name="email" value="">
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <label class="form-label">Mobile Phone</label>
-                    <input class="form-control input-sm" name="mobile_phone" value="">
+                    <input class="form-control input-sm" id="form-mobile" name="mobile_phone" value="">
                     <label class="form-label">Home Phone</label>
-                    <input class="form-control input-sm" name="home_phone" value="">
+                    <input class="form-control input-sm" id="form-home" name="home_phone" value="">
                     <label class="form-label">Work Phone</label>
-                    <input class="form-control input-sm" name="work_phone" value="">
+                    <input class="form-control input-sm" id="form-work" name="work_phone" value="">
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <label class="form-label">Address</label>
-                    <input class="form-control input-sm" name="address" value="">
+                    <input class="form-control input-sm" name="address" id="form-address" value="">
                     <label class="form-label">City</label>
-                    <input class="form-control input-sm" name="city" value="">
+                    <input class="form-control input-sm" name="city" id="form-city" value="">
                     <div class="row">
                         <div class="col-lg-8">
                             <label class="form-label">State</label>
-                            <select class="form-control">
+                            <select class="form-control" name="state" id="form-state">
                                 <option value="">Select</option>
                                 <option value="AL">Alabama</option>
                                 <option value="AK">Alaska</option>
@@ -266,32 +297,16 @@ class TableClass
                         </div>
                         <div class="col-lg-4">
                             <label class="form-label">Zip</label>
-                            <input class="form-control input-sm" name="zip" value="">
+                            <input class="form-control input-sm" name="zip" id="form-zip" value="">
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-3">
-                    <label class="form-label">Age</label>
-                    <input class="form-control input-sm" name="age" value="">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <label class="form-label">Children</label>
-                            <input class="form-control input-sm" name="children" value="">
-                        </div>
-                        <div class="col-lg-6">
-                            <label class="form-label">Number</label>
-                            <input class="form-control input-sm" name="num_of_children" value="">
-                        </div>
-                    </div>
-                    <label class="form-label">Children Age</label>
-                    <input class="form-control input-sm" name="children_age" value="">
                 </div>
             </div>
             <hr>
             <div class="row">
-                <div class="col-lg-3">
+                <div class="col-lg-2">
                     <label class="form-label">Reason</label>
-                    <select class="form-control" name="reason">
+                    <select class="form-control" name="reason" id="form-reason">
                         <option value="">Select</option>
                         <option value="business">Business</option>
                         <option value="vacation">Vacation</option>
@@ -303,8 +318,19 @@ class TableClass
                     </select>
                 </div>
                 <div class="col-lg-2">
+                    <label class="form-label">Interests</label><br>
+                    <select id="demo" multiple="multiple" class="form-control">
+                        <?php while ($interest = $interests->fetch_assoc()):?>
+                            <option class="interest-option" value="<?php echo $interest['name']; ?>">
+                                <?php echo $interest['name']; ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                    <input type="hidden" name="interests" id="interests" value="">
+                </div>
+                <div class="col-lg-2">
                     <label class="form-label">Visit Month</label>
-                    <select class="form-control" name="visit_date">
+                    <select class="form-control" name="visit_date" id="form-visit-date">
                         <option value="">Select</option>
                         <option value="january">January</option>
                         <option value="february">February</option>
@@ -320,23 +346,25 @@ class TableClass
                         <option value="december">December</option>
                     </select>
                 </div>
-                <div class="col-lg-5">
-                    <div class="col-lg-6">
-                        <label class="form-label">Visit Start</label>
-                        <div id="datetimepicker1" class="input-group">
-                            <input data-format="MM/dd/yyyy" name="visit_date_start" class="form-control">
-                            <span class="input-group-addon add-on">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label class="form-label">Visit Start</label>
+                            <div id="datetimepicker1" class="input-group">
+                                <input data-format="MM/dd/yyyy" id="form-visit-date-start" name="visit_date_start" class="form-control">
+                                <span class="input-group-addon add-on">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label">Visit End</label>
-                        <div id="datetimepicker2" class="input-group">
-                            <input data-format="MM/dd/yyyy" name="visit_date_end" class="form-control">
-                            <span class="input-group-addon add-on">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                        <div class="col-lg-6">
+                            <label class="form-label">Visit End</label>
+                            <div id="datetimepicker2" class="input-group">
+                                <input data-format="MM/dd/yyyy" id="form-visit-date-end" name="visit_date_end" class="form-control">
+                                <span class="input-group-addon add-on">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -365,54 +393,91 @@ class TableClass
                 <th style="width: 65px;"></th>
             </thead>
             <tbody>
-                
-                <?php foreach ($query as $counter => $result): ?>
-                    <tr>
-                        <td><?php echo $counter + 1; ?></td>
+
+                <?php
+                $counter = 1;
+                while ($result = $query->fetch_assoc()):
+                ?>
+                    <tr class="visiting-edit-row-tr" id="<?php echo $result['id']; ?>" title="<?php echo $result['visiting_id']; ?>">
+                        <td><?php echo $counter; ?></td>
                         <td>
-                            <a href="index.php/?person&id=<?php echo $result['id']; ?>">
+                            <a href="index.php/?visitor&id=<?php echo $result['id']; ?>">
                                 <?php echo ucwords($result['first_name']).' '.ucwords($result['last_name']); ?>
                             </a>
                         </td>
-                        <td><?php echo $result['email']; ?></td>
-                        <td><?php echo ucwords(str_replace("_", " ", $result['reason'])); ?></td>
-                        <td><?php echo ucwords($result['visit_date']); ?></td>
+                        <td id="visiting-email-<?php echo $result['id']; ?>">
+                            <?php echo $result['email']; ?>
+                        </td>
+                        <td>
+                            <?php echo ucwords(str_replace("_", " ", $result['reason'])); ?>
+                        </td>
+                        <td>
+                            <?php echo ucwords($result['visit_date']); ?>
+                        </td>
                         <td><?php echo date('m/d/y h:ia', $result['updated_at']); ?></td>
                         <td>
-                            <button class="btn btn-danger btn-xs"><i class="fa fa-remove"></i></button>
-                            <button class="btn btn-default btn-xs"><i class="fa fa-edit"></i></button>
+                            <button class="btn btn-danger btn-xs">
+                                <i class="fa fa-remove"></i>
+                            </button>
+                            <button class="btn btn-default btn-xs visiting-edit-row" value="<?php echo $result['id']; ?>">
+                                <i class="fa fa-edit"></i>
+                            </button>
                         </td>
+                        <!-- hidden fields for edit -->
+                        <input type="hidden" id="visiting-fname-<?php echo $result['id']; ?>" value="<?php echo $result['first_name']; ?>">
+                        <input type="hidden" id="visiting-lname-<?php echo $result['id']; ?>" value="<?php echo $result['last_name']; ?>">
+                        <input type="hidden" id="visiting-mobile-<?php echo $result['id']; ?>" value="<?php echo $result['mobile_phone']; ?>">
+                        <input type="hidden" id="visiting-home-<?php echo $result['id']; ?>" value="<?php echo $result['home_phone']; ?>">
+                        <input type="hidden" id="visiting-work-<?php echo $result['id']; ?>" value="<?php echo $result['work_phone']; ?>">
+                        <input type="hidden" id="visiting-address-<?php echo $result['id']; ?>" value="<?php echo $result['address']; ?>">
+                        <input type="hidden" id="visiting-city-<?php echo $result['id']; ?>" value="<?php echo $result['city']; ?>">
+                        <input type="hidden" id="visiting-state-<?php echo $result['id']; ?>" value="<?php echo $result['state']; ?>">
+                        <input type="hidden" id="visiting-zip-<?php echo $result['id']; ?>" value="<?php echo $result['zip']; ?>">
+                        <input type="hidden" id="visiting-reason-<?php echo $result['id']; ?>" value="<?php echo $result['reason']; ?>">
+                        <input type="hidden" id="visiting-interests-<?php echo $result['id']; ?>" value='<?php echo json_encode(unserialize($result['interests'])); ?>'>
+                        <input type="hidden" id="visiting-date-<?php echo $result['id']; ?>" value="<?php echo $result['visit_date']; ?>">
+                        <input type="hidden" id="visiting-date-start-<?php echo $result['id']; ?>" value="<?php echo $result['visit_date_start']; ?>">
+                        <input type="hidden" id="visiting-date-end-<?php echo $result['id']; ?>" value="<?php echo $result['visit_date_end']; ?>">
                     </tr>
-                <?php endforeach; ?>
-                
+                <?php
+                $counter++;
+                endwhile;
+                ?>
+
             </tbody>
         </table>
         <?php
     }
 
-    public function intrestsTable($query)
+    public function interestsTable($query)
     {
         ?>
             <!-- content table -->
         <table class="table table-striped table-condensed table-hover table-bordered">
             <thead>
                 <th>#</th>
-                <th>Intrest</th>
+                <th>Interest</th>
                 <th style="width: 65px;"></th>
             </thead>
             <tbody>
-                
-                <?php foreach ($query as $counter => $result): ?>
+
+                <?php
+                $counter = 1;
+                while ($result = $query->fetch_assoc()):
+                ?>
                     <tr>
-                        <td><?php echo $counter + 1; ?></td>
+                        <td><?php echo $counter; ?></td>
                         <td><?php echo $result['name']; ?></td>
                         <td>
                             <button class="btn btn-danger btn-xs"><i class="fa fa-remove"></i></button>
                             <button class="btn btn-default btn-xs"><i class="fa fa-edit"></i></button>
                         </td>
                     </tr>
-                <?php endforeach; ?>
-                
+                <?php
+                $counter++;
+                endwhile;
+                ?>
+
             </tbody>
         </table>
         <?php

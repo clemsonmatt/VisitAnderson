@@ -14,10 +14,10 @@ if (getenv('REMOTE_ADDR') == '127.0.0.1') {
 }
 /* remote connection */
 else {
-    $dbhost = 'mysql1.cs.clemson.edu';
-    $dbname = 'visit_anderson';
-    $dbuser = '';
-    $dbpass = '';
+    $dbhost = 'visitanderson.db.11185848.hostedresource.com';
+    $dbname = 'visitanderson';
+    $dbuser = 'visitanderson';
+    $dbpass = 'Database1!';
 }
 
 $con = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
